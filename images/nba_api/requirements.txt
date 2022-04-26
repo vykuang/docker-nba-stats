@@ -1,0 +1,4 @@
+pathlib
+click
+nba_api
+numpy
