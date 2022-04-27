@@ -9,16 +9,16 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # folderdir relative to Dockerfile
-COPY scripts/get_new_game_ids.py /usr/local/bin/get-new-ids
-COPY scripts/transform.py /usr/local/bin/transform
+COPY scripts/*.py /usr/local/bin/*
 # makes sure that it's executable
-RUN chmod +x /usr/local/bin/get-new-ids
-RUN chmod +x /usr/local/bin/transform
+RUN chmod +x /usr/local/bin/*
 
 # First command to run when starting a container from this image
 # ENTRYPOINT [ "/usr/local/bin/nba-game-ids" ]
 
-# alternatively, add the above dir to PATH, and call within docker run invoke
-# 
-# ENV PATH="/usr/local/bin:${PATH}"
-ENV PATH="/usr/local/bin${PATH:+:${PATH}}"
+# default args to include with ENTRYPOINT cmd
+# CMD [ "--help" ]
+
+# Ensures our script, which we've put in /usr/local/bin, is on PATH
+# so we can call without specifying full path, and use just the script name
+ENV PATH="/usr/local/bin:${PATH}"

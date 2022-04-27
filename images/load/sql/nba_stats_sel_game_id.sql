@@ -1,0 +1,1 @@
+SELECT DISTINCT game_id from player_boxscores;

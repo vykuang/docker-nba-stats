@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS player_boxscores (
+    game_id VARCHAR(20), team_id INT, team_abbreviation CHAR(3), team_city VARCHAR(20), player_id INT, player_name VARCHAR(40), nickname VARCHAR(40), start_position VARCHAR(2), comment VARCHAR(40), minutes VARCHAR(5), fgm SMALLINT, fga SMALLINT, fg_pct NUMERIC(4, 3), fg3m SMALLINT, fg3a SMALLINT, fg3_pct NUMERIC(4, 3), ftm SMALLINT, fta SMALLINT, ft_pct SMALLINT, oreb SMALLINT, dreb SMALLINT, reb SMALLINT, ast SMALLINT, stl SMALLINT, blk SMALLINT, turnover SMALLINT, pf SMALLINT, pts SMALLINT, plus_minus SMALLINT,
+    CONSTRAINT pk_player_boxscore 
+    PRIMARY KEY (game_id, player_id));
