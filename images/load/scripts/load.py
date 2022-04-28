@@ -28,9 +28,10 @@ import click
 @click.option(
     "--conn_str", 
     type=click.STRING,
-    help="Connection string to the postgres database."
+    help="Connection string to the postgres database. Must contain dbname,\
+    host, user, and password",
 )
-def populate_boxscore_table(sql_path, incl_path, conn_str):
+def populate_boxscore_table(sql_path, incl_path, conn_str=None):
     """
     UPSERTing all records into the table
     Postgres does not have native UPSERT like MySQL,
@@ -51,12 +52,20 @@ def populate_boxscore_table(sql_path, incl_path, conn_str):
     import psycopg2.extras
 
     with open(incl_path / 'trad_boxscores.json') as j, \
-         open(incl_path / 'nba_stats_create.sql') as sql_create, \
+         open(sql_path / 'nba_stats_create.sql') as sql_create, \
          open(sql_path / 'nba_stats_populate.sql') as sql_upsert:
         trad_box = json.load(j)
         create_table =  sql_create.read()
         populate = sql_upsert.read()
 
+    if not conn_str:
+        conn_str = "dbname='nba_stats' \
+            host='nba-stats-db' \
+            port='5432' \
+            user='nba_stats' \
+            password='secret'"
+    
+    conn = None
     try:
         conn = psycopg2.connect(conn_str)
 

@@ -45,6 +45,7 @@ services:
     ports:
       - "8081:5432"
     networks:
+    # see https://docs.docker.com/compose/networking/
       - airflow
       - nba_stats
     volumes:
