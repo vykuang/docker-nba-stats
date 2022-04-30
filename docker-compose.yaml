@@ -1,5 +1,5 @@
 version: "3.7"
-# ====================================== AIRFLOW ENVIRONMENT VARIABLES =======================================
+# =========================/AIRFLOW ENVIRONMENT VARIABLES =====================
 x-environment: &airflow_environment
   # Airflow settings.
   - AIRFLOW__CORE__EXECUTOR=LocalExecutor
@@ -14,17 +14,12 @@ x-environment: &airflow_environment
   - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
   - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
   - AIRFLOW__WEBSERVER__RBAC=False
-  # Movielens settings.
-  # - AIRFLOW_CONN_MOVIELENS=http://airflow:airflow@movielens
-  # - MOVIELENS_USER=airflow
-  # - MOVIELENS_PASSWORD=airflow
-  # - MOVIELENS_HOST=http://movielens:5000
 x-airflow-image: &airflow_image apache/airflow:2.2.4-python3.8
-# ====================================== /AIRFLOW ENVIRONMENT VARIABLES ======================================
+# =========================/AIRFLOW ENVIRONMENT VARIABLES =====================
 services:
   postgres:
     image: postgres:12-alpine
-    container_name: nba_stats-airflow-metadb
+    container_name: airflow-metadb
     environment:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
@@ -33,23 +28,6 @@ services:
       - "5432:5432"
     networks:
       - airflow
-
-  # this is the host name to connect to in the connection URL
-  nba-stats-postgres:
-    image: postgres:12-alpine    
-    # container_name: nba_stats-datawarehouse
-    environment:
-      - POSTGRES_USER=nba_stats
-      - POSTGRES_PASSWORD=nba_stats
-      - POSTGRES_DB=nba_stats
-    ports:
-      - "8081:5432"
-    networks:
-    # see https://docs.docker.com/compose/networking/
-      - airflow
-      - nba_stats
-    volumes:
-      - nba_stats_db:/var/lib/postgresql/data
   
   init:
     build:
@@ -57,7 +35,6 @@ services:
       args:
         AIRFLOW_BASE_IMAGE: *airflow_image
     image: nba-stats/airflow-docker
-    # container_name: chapter10_docker_init_1
     depends_on:
       - postgres
     networks:
@@ -65,13 +42,13 @@ services:
     environment: *airflow_environment
     entrypoint: /bin/bash
     command: -c 'airflow db upgrade && sleep 5 && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org'
+  
   webserver:
     build:
       context: images/airflow-docker
       args:
         AIRFLOW_BASE_IMAGE: *airflow_image
     image: nba-stats/airflow-docker
-    # container_name: chapter10_docker_webserver_1
     restart: always
     depends_on:
       - postgres
@@ -83,13 +60,13 @@ services:
       - airflow
     environment: *airflow_environment
     command: webserver
+
   scheduler:
     build:
       context: images/airflow-docker
       args:
         AIRFLOW_BASE_IMAGE: *airflow_image
     image: nba-stats/airflow-docker
-    # container_name: chapter10_docker_scheduler_1
     restart: always
     depends_on:
       - postgres
@@ -102,28 +79,61 @@ services:
     environment: *airflow_environment
     command: scheduler
 
+  #======================== application services ========================
+
+  # this is the host name to connect to in the connection URL
+  nba-stats-db:
+    # -alpine for a more lightweight db
+    image: postgres:12-alpine    
+    environment:
+      - POSTGRES_USER=nba_stats
+      - POSTGRES_PASSWORD=nba_stats
+      - POSTGRES_DB=nba_stats # the default database
+      - POSTGRES_PORT=5433 # 
+      # defining a subdir for our db persistence
+      - PGDATA=/var/lib/postgresql/data/nba_stats 
+    # ports:
+    #   - "8081:5432" # host port: container port
+    networks:
+    # see https://docs.docker.com/compose/networking/
+      - nba-stats
+    volumes:
+      - nba-stats-db:/var/lib/postgresql/data/nba_stats
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=vykuang92@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=secret
+      - PGADMIN_LISTEN_PORT=80
+    ports: # expose to localhost:80 for user inspection
+      - "80:80"
+    networks:
+      - nba-stats
+    volumes:
+      - pgadmin:/var/lib/pgadmin
   # These aren't actual services, but we include them to make sure that the
   # corresponding images are built by when pulling up docker-compose.
+  # network and volumes are attached at run-time by airflow DAG
   nba-api-fetch:
     build: images/nba_api
-    image: nba-stats/nba-api-fetch
-    # container_name: chapter10_docker_movielens-fetch_1
+    image: nba-stats/extract-nba-api
     restart: "no"
   transform:
     build: images/transform
     image: nba-stats/transform
-    # container_name: chapter10_docker_movielens-rank_1
     restart: "no"
+
+  #======================== application services ========================
 
 networks:
   airflow:
     name: airflow
-  nba_stats:
-    name: nba_stats
-
+  nba-stats:
+    name: nba-stats
 
 volumes:
   logs:
-    name: nba_stats
-  nba_stats_db:
-    name: nba_stats_db
+  nba-stats-db:
+  data:
+  pgadmin:

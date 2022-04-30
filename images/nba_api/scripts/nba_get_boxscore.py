@@ -36,8 +36,14 @@ def get_boxscore(resp_path, incl_path):
     game_ids_fp = incl_path / 'game_ids_new.json'
     if not game_ids_fp.exists():
         raise FileNotFoundError
+
     with open(game_ids_fp) as js_read:
         game_ids = json.load(js_read)
+
+    # the included volume will not have /data/resp at first load
+    if not Path.exists(resp_path):
+        resp_path = incl_path / 'resp'
+        Path.mkdir(resp_path)                             
 
     for game_id in game_ids['Game_IDs']:
         try:

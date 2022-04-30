@@ -10,8 +10,10 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # folderdir relative to Dockerfile
 COPY scripts/nba_get_team_log.py /usr/local/bin/get-game-ids
+COPY scripts/nba_get_boxscore.py /usr/local/bin/get-boxscores
+
 # makes sure that it's executable
-RUN chmod +x /usr/local/bin/get-game-ids
+RUN chmod +x /usr/local/bin/*
 
 # First command to run when starting a container from this image
 # ENTRYPOINT [ "/usr/local/bin/nba-game-ids" ]

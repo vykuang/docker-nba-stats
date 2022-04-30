@@ -12,8 +12,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY scripts/get_new_game_ids.py /usr/local/bin/get-new-ids
 COPY scripts/transform.py /usr/local/bin/transform
 # makes sure that it's executable
-RUN chmod +x /usr/local/bin/get-new-ids
-RUN chmod +x /usr/local/bin/transform
+RUN chmod +x /usr/local/bin/*
 
 # First command to run when starting a container from this image
 # ENTRYPOINT [ "/usr/local/bin/nba-game-ids" ]
